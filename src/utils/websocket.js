@@ -4,7 +4,7 @@ let socket;
 
 export function createWebSocket() {
   // Create WebSocket connection.
-  socket = new WebSocket('ws://localhost:8080/broadcast');
+  socket = new WebSocket('ws://localhost:8080/websocket');
 }
 
 export function getChannelMessages() {

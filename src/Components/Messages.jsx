@@ -56,39 +56,70 @@ const MessageText = styled.div`
 function Messages() {
   const [previousMessages, setPreviousMessages] = useState([]);
 
+  const [liveMessages, setLiveMessages] = useState([]);
+
+  const [allMessages, setAllMessages] = useState([]);
+
+  const [username, setUsername] = useState('');
+
+  const [inputValuetext, setInputValueText] = useState('');
+
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    socket.addEventListener('message', event => {
+      console.log(event.data);
+
+      const data = JSON.parse(event.data);
+
+      if (data.setUsername) {
+        setUsername(data.setUsername);
+      } else {
+        setLiveMessages([...liveMessages, data]);
+      }
+    });
+  }, []);
+
   useEffect(() => {
     getChannelMessages().then(data => {
-      console.log(data);
       setPreviousMessages(data);
     });
   }, []);
 
-  const inputRef = useRef(null);
-
-  const [inputValuetext, setInputValueText] = useState('');
+  useEffect(() => {
+    setAllMessages([...previousMessages, ...liveMessages]);
+  }, [liveMessages, previousMessages]);
 
   const handleInputChange = event => {
     setInputValueText(event.target.value);
   };
 
-  //Enter key sends a message
+  //Enter key sends a message to server to be broadcasted
   const handleKeyDown = event => {
     if (event.keyCode === 13) {
       console.log('Enter is pressed');
-      setInputValueText('');
+
+      const messageJson = {
+        username: username,
+        message: inputValuetext,
+        channelId: 1,
+      };
+
       inputRef.current.value = '';
-      socket.send(inputValuetext);
+      socket.send(JSON.stringify(messageJson));
+
+      setLiveMessages([...liveMessages, messageJson]);
     }
   };
 
   return (
-    <MessagesContainer className="relative">
-      <Container className="overflow-auto">
-        {previousMessages.map((data, i) => (
+    <MessagesContainer>
+      <Container className=" overflow-auto" id="MessageBox">
+        {allMessages.map((data, i) => (
           <div key={i}>
-            <MessageUser>{data.Username}:</MessageUser>
+            <MessageUser>{data.username}:</MessageUser>
             <MessageText className="rounded-lg border-2 border-white item-center">
-              <div className="p-2">{data.Message}</div>
+              <div className="p-2">{data.message}</div>
             </MessageText>
           </div>
         ))}

@@ -7,8 +7,6 @@ import SideButton from './Components/SideButton';
 import Messages from './Components/Messages';
 
 const ProfileContainer = styled.div`
-  color: green;
-
   box-sizing: border-box;
 
   position: relative;
