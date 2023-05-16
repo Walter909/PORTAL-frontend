@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import React, { useState, useEffect, useRef } from 'react';
 import styled from '@emotion/styled';
 
@@ -38,8 +39,10 @@ const MessageUser = styled.div`
   font-weight: 700;
   font-size: 18px;
   line-height: 22px;
+
   /* identical to box height */
   color: #ffffff;
+  text-align: ${props => (props.alignRight ? 'right' : 'left')};
 `;
 
 const MessageText = styled.div`
@@ -49,11 +52,16 @@ const MessageText = styled.div`
   font-weight: 700;
   font-size: 18px;
   line-height: 22px;
+
   /* identical to box height */
   color: #ffffff;
+  text-align: ${props => (props.alignRight ? 'right' : 'left')};
 `;
 
-function Messages() {
+const Messages = props => {
+  // const container = document.getElementById('MessageBox');
+  // container.scrollTop = container.scrollHeight;
+
   const [previousMessages, setPreviousMessages] = useState([]);
 
   const [liveMessages, setLiveMessages] = useState([]);
@@ -67,25 +75,28 @@ function Messages() {
   const inputRef = useRef(null);
 
   useEffect(() => {
-    socket.addEventListener('message', event => {
-      console.log(event.data);
+    console.log('Creating message component');
 
+    socket.addEventListener('message', event => {
       const data = JSON.parse(event.data);
 
+      //Instruction object from server check
       if (data.setUsername) {
         setUsername(data.setUsername);
       } else {
-        setLiveMessages([...liveMessages, data]);
+        setLiveMessages(messages => [...messages, data]);
       }
     });
   }, []);
 
   useEffect(() => {
-    getChannelMessages().then(data => {
+    getChannelMessages(props.channelId).then(data => {
+      setLiveMessages([]);
       setPreviousMessages(data);
     });
-  }, []);
+  }, [props.channelId]);
 
+  //Message concatenation
   useEffect(() => {
     setAllMessages([...previousMessages, ...liveMessages]);
   }, [liveMessages, previousMessages]);
@@ -98,31 +109,41 @@ function Messages() {
   const handleKeyDown = event => {
     if (event.keyCode === 13) {
       console.log('Enter is pressed');
+      console.log(props.channelId);
 
       const messageJson = {
         username: username,
         message: inputValuetext,
-        channelId: 1,
+        channelId: props.channelId,
       };
 
       inputRef.current.value = '';
       socket.send(JSON.stringify(messageJson));
 
-      setLiveMessages([...liveMessages, messageJson]);
+      setLiveMessages(messages => [...messages, messageJson]);
     }
   };
 
   return (
     <MessagesContainer>
-      <Container className=" overflow-auto" id="MessageBox">
-        {allMessages.map((data, i) => (
-          <div key={i}>
-            <MessageUser>{data.username}:</MessageUser>
-            <MessageText className="rounded-lg border-2 border-white item-center">
-              <div className="p-2">{data.message}</div>
-            </MessageText>
-          </div>
-        ))}
+      <Container className="overflow-auto" id="MessageBox">
+        {allMessages
+          .filter(data => data.channelId == props.channelId)
+          .map((data, i) => (
+            <div key={i}>
+              <MessageUser
+                alignRight={data.username == username ? true : false}
+              >
+                {data.username}:
+              </MessageUser>
+              <MessageText
+                alignRight={data.username == username ? true : false}
+                className="rounded-lg border-2 border-white item-center"
+              >
+                <div className="p-2">{data.message}</div>
+              </MessageText>
+            </div>
+          ))}
       </Container>
 
       <hr className="absolute bottom-10 w-full" />
@@ -137,6 +158,6 @@ function Messages() {
       </MessageInput>
     </MessagesContainer>
   );
-}
+};
 
 export default Messages;

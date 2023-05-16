@@ -7,9 +7,9 @@ export function createWebSocket() {
   socket = new WebSocket('ws://localhost:8080/websocket');
 }
 
-export function getChannelMessages() {
+export function getChannelMessages(channel) {
   return axios
-    .get('http://localhost:8080/channel?id=1')
+    .get('http://localhost:8080/channel?id=' + channel)
     .then(function (response) {
       // handle success
       return response.data;
