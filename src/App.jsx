@@ -34,6 +34,7 @@ const BasicGrid = () => {
 
   return (
     <Box sx={{ flexGrow: 1 }}>
+      <hr />
       <Grid container spacing={2}>
         <Grid item xs={2}>
           <ProfileContainer>

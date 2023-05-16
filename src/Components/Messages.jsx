@@ -91,6 +91,10 @@ const Messages = props => {
 
   useEffect(() => {
     getChannelMessages(props.channelId).then(data => {
+      if (data == null) {
+        return;
+      }
+
       setLiveMessages([]);
       setPreviousMessages(data);
     });
